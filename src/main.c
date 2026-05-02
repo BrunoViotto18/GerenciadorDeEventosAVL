@@ -198,7 +198,7 @@ void create_event(AvlTree *tree)
         }
 
         clear_terminal();
-        printf("O id %ld já está em uso! Tente novamente...\n", id);
+        printf("O id %zu já está em uso! Tente novamente...\n", id);
         wait_for_enter();
         clear_terminal();
     }
@@ -255,13 +255,13 @@ void remove_event(AvlTree *tree)
 
     if (status == AVLTREE_KEY_NOT_FOUND)
     {
-        printf("O id %ld não está cadastrado\n", id);
+        printf("O id %zu não está cadastrado\n", id);
         return;
     }
 
     if (event->status == EVENT_STATUS_ACTIVE)
     {
-        printf("O evento %ld ainda está ativo, não pode ser removido!\n", id);
+        printf("O evento %zu ainda está ativo, não pode ser removido!\n", id);
         return;
     }
 
@@ -287,7 +287,7 @@ void get_event_by_id(AvlTree *tree)
 
     if (status == AVLTREE_KEY_NOT_FOUND)
     {
-        printf("O id %ld não está cadastrado\n", id);
+        printf("O id %zu não está cadastrado\n", id);
         return;
     }
 
@@ -417,13 +417,13 @@ void update_event_status(AvlTree *tree)
 
     if (status == AVLTREE_KEY_NOT_FOUND)
     {
-        printf("O id %ld não está cadastrado\n", id);
+        printf("O id %zu não está cadastrado\n", id);
         return;
     }
 
     if (event->status == EVENT_STATUS_RESOLVED)
     {
-        printf("O evento %ld já está resolvido!\n", id);
+        printf("O evento %zu já está resolvido!\n", id);
         return;
     }
 
@@ -447,13 +447,13 @@ void update_event_severity(AvlTree *tree)
 
     if (status == AVLTREE_KEY_NOT_FOUND)
     {
-        printf("O id %ld não está cadastrado\n", id);
+        printf("O id %zu não está cadastrado\n", id);
         return;
     }
 
     if (event->status == EVENT_STATUS_RESOLVED)
     {
-        printf("O evento %ld já está resolvido!\n", id);
+        printf("O evento %zu já está resolvido!\n", id);
         return;
     }
 
@@ -539,7 +539,7 @@ void display_tree_rotation_count(AvlTree *tree)
 
 void display_event(Event *event)
 {
-    printf("Id: %ld\n", event->id);
+    printf("Id: %zu\n", event->id);
 
     printf("Tipo: ");
     switch (event->type)
@@ -598,9 +598,23 @@ size_t read_id(char *message, char *error)
     {
         printf("%s: ", message);
         fgets(buffer, sizeof buffer, stdin);
-        if (sscanf(buffer, "%ld", &id) == 1)
+
+        for (size_t i = 0; i < sizeof buffer; i++)
         {
-            return id;
+            if (buffer[i] == ' ')
+            {
+                continue;
+            }
+
+            if (buffer[i] == '-')
+            {
+                break;
+            }
+
+            if (sscanf(buffer, "%zu", &id) == 1)
+            {
+                return id;
+            }
         }
 
         printf("%s! Tente Novamente...\n", error);

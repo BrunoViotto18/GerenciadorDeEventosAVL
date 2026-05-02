@@ -186,4 +186,31 @@ AvlTreeStatus avltree_iterator_next(AvlTreeIterator *iterator, void *value);
 /// @retval AVLTREE_ITERATOR_INVALID The iterator was invalidated by a tree change.
 AvlTreeStatus avltree_iterator_getvalue(AvlTreeIterator *iterator, void *value);
 
+/// @brief Gets the tree height.
+/// @param tree Tree to inspect.
+/// @param height Output pointer that receives the value height.
+/// @return Result code indicating success or failure.
+/// @retval AVLTREE_OK The height was written successfully.
+/// @retval AVLTREE_NULL_POINTER_ARGUMENT tree or height was NULL.
+AvlTreeStatus avltree_get_height(AvlTree *tree, int *height);
+
+/// @brief Gets the tree average balancing factor.
+/// @param tree Tree to inspect.
+/// @param avg_balancing_factor Output pointer that receives the average of the balancing factor.
+/// @return Result code indicating success or failure.
+/// @retval AVLTREE_OK The average balancing factor was written successfully.
+/// @retval AVLTREE_NULL_POINTER_ARGUMENT tree or avg_balancing_factor was NULL.
+AvlTreeStatus avltree_get_avg_balancing_factor(AvlTree *tree, double *avg_balancing_factor);
+
+/// @brief Gets the tree rotation count metadata.
+/// @param tree Tree to inspect.
+/// @param left Output pointer that receives the count of left rotations performed.
+/// @param right Output pointer that receives the count of right rotations performed.
+/// @param left_right Output pointer that receives the count of left-right rotations performed.
+/// @param right_left Output pointer that receives the count of right-left rotations performed.
+/// @return Result code indicating success or failure.
+/// @retval AVLTREE_OK The rotations were written successfully.
+/// @retval AVLTREE_NULL_POINTER_ARGUMENT tree, left, right, left_right or right_left was NULL.
+AvlTreeStatus avltree_get_rotation_count(AvlTree *tree, size_t *left, size_t *right, size_t *left_right, size_t *right_left);
+
 #endif

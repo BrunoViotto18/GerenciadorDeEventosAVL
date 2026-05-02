@@ -40,6 +40,13 @@ void display_tree_rotation_count(AvlTree *tree);
 void display_event(Event *event);
 void take_until_new_line(char *str);
 
+size_t read_id(char *message, char *error);
+EventType read_event_type(char *message, char *error);
+EventSeverity read_event_severity(char *message, char *error);
+time_t read_datetime(char *message, char *error);
+void read_city_region(char *message, char *error, char city_region[EVENT_CITY_REGION_SIZE]);
+EventStatus read_event_status(char *message, char *error);
+
 const void *get_event_id(const void *value);
 int compare_event_ids(const void *value1, const void *value2);
 void free_event(void *value);
@@ -162,117 +169,20 @@ MenuOption menu()
 
 void create_event(AvlTree *tree)
 {
-    char buffer[64];
-
-    EventType type;
-    while (true)
-    {
-        printf("[ 1 ] Acidente de Trânsito\n");
-        printf("[ 2 ] Falha em semáforo\n");
-        printf("[ 3 ] Interrupção de energia\n");
-        printf("[ 4 ] Alagamento\n");
-        printf("[ 5 ] Incêndio\n");
-        printf("Selecione o tipo do evento: ");
-        fgets(buffer, sizeof buffer, stdin);
-        if (sscanf(buffer, "%d", (int *)&type) == 1 && type >= 1 && type <= 5)
-        {
-            type--;
-            break;
-        }
-
-        printf("Tipo de evento inválido! Tente novamente...\n");
-        wait_for_enter();
-        clear_terminal();
-    };
-
+    EventType type = read_event_type("Selecione o tipo do evento", "Tipo de evento inválido");
     clear_terminal();
 
-    EventSeverity severity;
-    while (true)
-    {
-        printf("Digite a severidade do evento [1~5]: ");
-        fgets(buffer, sizeof buffer, stdin);
-        if (sscanf(buffer, "%d", (int *)&severity) == 1 && severity >= 1 && severity <= 5)
-        {
-            break;
-        }
-
-        printf("Severidade inválida! Tente novamente...\n");
-        wait_for_enter();
-        clear_terminal();
-    };
-
+    EventSeverity severity = read_event_severity("Digite a severidade do evento [1~5]", "Valor de severidade inválida");
     clear_terminal();
 
-    time_t timestamp;
-    while (true)
-    {
-        int year, month, day, hour, minute, second;
-        printf("Digite a data do evento [dd/MM/YYYY HH:mm:ss]: ");
-        fgets(buffer, sizeof buffer, stdin);
-        if (sscanf(buffer, "%d/%d/%d %d:%d:%d", &day, &month, &year, &hour, &minute, &second) == 6 && year >= 1900 && month >= 1 && month <= 12 && day >= 1 && day <= 31 && hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59 && second >= 0 && second <= 59)
-        {
-            struct tm tm = {0};
-
-            tm.tm_year = year - 1900;
-            tm.tm_mon = month - 1;
-            tm.tm_mday = day;
-            tm.tm_hour = hour;
-            tm.tm_min = minute;
-            tm.tm_sec = second;
-            tm.tm_isdst = -1;
-
-            timestamp = mktime(&tm);
-
-            if (timestamp != -1)
-            {
-                break;
-            }
-        }
-
-        printf("Data e/ou hora inválida! Tente novamente...\n");
-        wait_for_enter();
-        clear_terminal();
-    };
-
+    time_t timestamp = read_datetime("Digite a data/hora do evento [dd/MM/YYYY HH:mm:ss]", "Valor de Data/hora inválida");
     clear_terminal();
 
     char city_region[EVENT_CITY_REGION_SIZE] = {0};
-    while (true)
-    {
-        printf("Digite a região da cidade: ");
-        fgets(city_region, sizeof city_region, stdin);
-        take_until_new_line(city_region);
-        if (strlen(city_region) != 0)
-        {
-            break;
-        }
-
-        printf("Região da cidade inválida! Tente novamente...\n");
-        wait_for_enter();
-        clear_terminal();
-    };
-
+    read_city_region("Digite a região da cidade", "Valor de região da cidade é inválido", city_region);
     clear_terminal();
 
-    EventStatus status;
-    while (true)
-    {
-        printf("[ 1 ] Ativo\n");
-        printf("[ 2 ] Resolvido\n");
-        printf("Selecione o status do evento: ");
-        fgets(buffer, sizeof buffer, stdin);
-        if (sscanf(buffer, "%d", (int *)&status) == 1 && status >= 1 && status <= 2)
-        {
-            status--;
-            break;
-        }
-
-        printf("Status inválido! Tente novamente...\n");
-        wait_for_enter();
-        clear_terminal();
-    };
-
+    EventStatus status = read_event_status("Selecione o status do evento", "Valor de status inválido");
     clear_terminal();
 
     Event *event = event_new(type, severity, timestamp, city_region, status);
@@ -294,67 +204,302 @@ void create_event(AvlTree *tree)
 
     printf("Evento criado com sucesso!\n");
 
+    printf("\n");
     display_event(event);
+    printf("\n");
 }
 
 void remove_event(AvlTree *tree)
 {
-    (void)tree;
+    size_t id = read_id("Digite o id do evento", "Valor de id inválido");
+
+    clear_terminal();
+
+    Event *event;
+    AvlTreeStatus status = avltree_get(tree, &id, &event);
+
+    if (status == AVLTREE_KEY_NOT_FOUND)
+    {
+        printf("O id %ld não está cadastrado\n", id);
+        return;
+    }
+
+    if (event->status == EVENT_STATUS_ACTIVE)
+    {
+        printf("O evento %ld ainda está ativo, não pode ser removido!\n", id);
+        return;
+    }
+
+    avltree_remove(tree, &id, &event);
+
+    printf("Evento removido com sucesso!\n");
+
+    printf("\n");
+    display_event(event);
+    printf("\n");
+
+    event_free(event);
 }
 
 void get_event_by_id(AvlTree *tree)
 {
-    (void)tree;
+    size_t id = read_id("Digite o id do evento", "Valor de id inválido");
+
+    clear_terminal();
+
+    Event *event;
+    AvlTreeStatus status = avltree_get(tree, &id, &event);
+
+    if (status == AVLTREE_KEY_NOT_FOUND)
+    {
+        printf("O id %ld não está cadastrado\n", id);
+        return;
+    }
+
+    printf("Evento encontrado!\n");
+
+    printf("\n");
+    display_event(event);
+    printf("\n");
 }
 
 void get_severity_range(AvlTree *tree)
 {
-    (void)tree;
+    EventSeverity min = read_event_severity("Digite a severidade mínima [1~5]", "Valor de severidade mínima inválido");
+    EventSeverity max = read_event_severity("Digite a severidade máxima [1~5]", "Valor de severidade máxima inválido");
+
+    clear_terminal();
+
+    if (min > max)
+    {
+        EventSeverity temp = min;
+        min = max;
+        max = temp;
+    }
+
+    AvlTreeIterator *iterator;
+    AvlTreeStatus status = avltree_iterator_new(tree, &iterator, NULL, NULL);
+
+    if (status == AVLTREE_OUT_OF_MEMORY)
+    {
+        printf("Falta de memória para alocar o iterador\n");
+        return;
+    }
+
+    printf("Eventos com severidade entre %d e %d\n", min, max);
+    printf("\n");
+
+    Event *event;
+    while (avltree_iterator_next(iterator, &event) == AVLTREE_OK)
+    {
+        if (event->severity >= min && event->severity <= max)
+        {
+            display_event(event);
+            printf("\n");
+        }
+    }
+
+    avltree_iterator_free(iterator);
 }
 
 void get_region_events(AvlTree *tree)
 {
-    (void)tree;
+    char city_region[EVENT_CITY_REGION_SIZE] = {0};
+    read_city_region("Digite a região da cidade", "Valor de região da cidade é inválido", city_region);
+
+    clear_terminal();
+
+    AvlTreeIterator *iterator;
+    AvlTreeStatus status = avltree_iterator_new(tree, &iterator, NULL, NULL);
+
+    if (status == AVLTREE_OUT_OF_MEMORY)
+    {
+        printf("Falta de memória para alocar o iterador\n");
+        return;
+    }
+
+    printf("Eventos na região %s\n", city_region);
+    printf("\n");
+
+    Event *event;
+    while (avltree_iterator_next(iterator, &event) == AVLTREE_OK)
+    {
+        if (strcmp(city_region, event->city_region) == 0)
+        {
+            display_event(event);
+            printf("\n");
+        }
+    }
+
+    avltree_iterator_free(iterator);
 }
 
 void get_id_range(AvlTree *tree)
 {
-    (void)tree;
+    size_t min = read_id("Digite o id mínimo", "Valor de id mínimo inválido");
+    size_t max = read_id("Digite o id máximo", "Valor de id máximo inválido");
+
+    if (min > max)
+    {
+        size_t temp = min;
+        min = max;
+        max = temp;
+    }
+
+    AvlTreeIterator *iterator;
+    AvlTreeStatus status = avltree_iterator_new(tree, &iterator, NULL, NULL);
+
+    if (status == AVLTREE_OUT_OF_MEMORY)
+    {
+        printf("Falta de memória para alocar o iterador\n");
+        return;
+    }
+
+    printf("Eventos com id entre %ld e %ld\n", min, max);
+    printf("\n");
+
+    Event *event;
+    while (avltree_iterator_next(iterator, &event) == AVLTREE_OK)
+    {
+        if (event->id >= min && event->id <= max)
+        {
+            display_event(event);
+            printf("\n");
+        }
+    }
+
+    avltree_iterator_free(iterator);
 }
 
 void update_event_status(AvlTree *tree)
 {
-    (void)tree;
+    size_t id = read_id("Digite o id do evento", "Valor de id inválido");
+
+    clear_terminal();
+
+    Event *event;
+    AvlTreeStatus status = avltree_get(tree, &id, &event);
+
+    if (status == AVLTREE_KEY_NOT_FOUND)
+    {
+        printf("O id %ld não está cadastrado\n", id);
+        return;
+    }
+
+    if (event->status == EVENT_STATUS_RESOLVED)
+    {
+        printf("O evento %ld já está resolvido!\n", id);
+        return;
+    }
+
+    event->status = EVENT_STATUS_RESOLVED;
+
+    printf("Status do evento atualizado com sucesso!\n");
+
+    printf("\n");
+    display_event(event);
+    printf("\n");
 }
 
 void update_event_severity(AvlTree *tree)
 {
-    (void)tree;
+    size_t id = read_id("Digite o id do evento", "Valor de id inválido");
+
+    clear_terminal();
+
+    Event *event;
+    AvlTreeStatus status = avltree_get(tree, &id, &event);
+
+    if (status == AVLTREE_KEY_NOT_FOUND)
+    {
+        printf("O id %ld não está cadastrado\n", id);
+        return;
+    }
+
+    if (event->status == EVENT_STATUS_RESOLVED)
+    {
+        printf("O evento %ld já está resolvido!\n", id);
+        return;
+    }
+
+    printf("Evento encontrado!\n");
+
+    printf("\n");
+    display_event(event);
+    printf("\n");
+
+    event->severity = read_event_severity("Digite a nova severidade do evento", "Valor de severidade inválido");
+
+    clear_terminal();
+
+    event->status = EVENT_STATUS_RESOLVED;
+
+    printf("Status do evento atualizado com sucesso!\n");
+
+    printf("\n");
+    display_event(event);
+    printf("\n");
 }
 
 void display_tree_height(AvlTree *tree)
 {
-    (void)tree;
+    int height;
+    avltree_get_height(tree, &height);
+    printf("Altura total da árvore: %d\n", height);
 }
 
 void display_tree_count(AvlTree *tree)
 {
-    (void)tree;
+    size_t count;
+    avltree_getcount(tree, &count);
+
+    printf("Número de nós na árvore: %ld\n", count);
 }
 
 void display_active_event_count(AvlTree *tree)
 {
-    (void)tree;
+    AvlTreeIterator *iterator;
+    AvlTreeStatus status = avltree_iterator_new(tree, &iterator, NULL, NULL);
+
+    if (status == AVLTREE_OUT_OF_MEMORY)
+    {
+        printf("Falta de memória para alocar o iterador\n");
+        return;
+    }
+
+    size_t count = 0;
+
+    Event *event;
+    while (avltree_iterator_next(iterator, &event) == AVLTREE_OK)
+    {
+        if (event->status == EVENT_STATUS_ACTIVE)
+        {
+            count++;
+        }
+    }
+
+    printf("Número de eventos ativos: %ld\n", count);
 }
 
 void display_tree_balancing_factor(AvlTree *tree)
 {
-    (void)tree;
+    double average_balancing_factor;
+    avltree_get_avg_balancing_factor(tree, &average_balancing_factor);
+    printf("Fator de balanceamento médio da árvore: %lf\n", average_balancing_factor);
 }
 
 void display_tree_rotation_count(AvlTree *tree)
 {
-    (void)tree;
+    size_t left;
+    size_t right;
+    size_t left_right;
+    size_t right_left;
+    avltree_get_rotation_count(tree, &left, &right, &left_right, &right_left);
+
+    printf("Rotações simples para esquerda: %ld\n", left);
+    printf("Rotações simples para direita: %ld\n", right);
+    printf("Rotações duplas para esquerda: %ld\n", right_left);
+    printf("Rotações duplas para direita: %ld\n", left_right);
 }
 
 void display_event(Event *event)
@@ -371,7 +516,7 @@ void display_event(Event *event)
         printf("Falhas em Semáforos");
         break;
     case EVENTTYPE_POWER_OUTAGE:
-        printf("Iterrupção de Energia");
+        printf("Interrupção de Energia");
         break;
     case EVENTTYPE_FLOOD:
         printf("Alagamento");
@@ -389,7 +534,7 @@ void display_event(Event *event)
     strftime(buffer, sizeof buffer, "%d/%m/%Y %H:%M:%S", tm);
     printf("Data/Hora: %s\n", buffer);
 
-    printf("Região: %s\n", event->cityRegion);
+    printf("Região: %s\n", event->city_region);
 
     printf("Status: ");
     switch (event->status)
@@ -409,9 +554,149 @@ void take_until_new_line(char *str)
     str[strcspn(str, "\r\n")] = '\0';
 }
 
+size_t read_id(char *message, char *error)
+{
+    char buffer[8] = {0};
+
+    size_t id;
+    while (true)
+    {
+        printf("%s: ", message);
+        fgets(buffer, sizeof buffer, stdin);
+        if (sscanf(buffer, "%ld", &id) == 1)
+        {
+            return id;
+        }
+
+        printf("%s! Tente Novamente...\n", error);
+        wait_for_enter();
+        clear_terminal();
+    }
+}
+
+EventType read_event_type(char *message, char *error)
+{
+    char buffer[8];
+
+    int type;
+    while (true)
+    {
+        printf("[ 1 ] Acidente de Trânsito\n");
+        printf("[ 2 ] Falha em semáforo\n");
+        printf("[ 3 ] Interrupção de energia\n");
+        printf("[ 4 ] Alagamento\n");
+        printf("[ 5 ] Incêndio\n");
+        printf("%s: ", message);
+        fgets(buffer, sizeof buffer, stdin);
+        if (sscanf(buffer, "%d", (int *)&type) == 1 && type >= 1 && type <= 5)
+        {
+            return (EventType)(type - 1);
+        }
+
+        printf("%s! Tente novamente...\n", error);
+        wait_for_enter();
+        clear_terminal();
+    };
+}
+
+EventSeverity read_event_severity(char *message, char *error)
+{
+    char buffer[8];
+
+    EventSeverity severity;
+    while (true)
+    {
+        printf("%s: ", message);
+        fgets(buffer, sizeof buffer, stdin);
+        if (sscanf(buffer, "%d", (int *)&severity) == 1 && severity >= 1 && severity <= 5)
+        {
+            return severity;
+        }
+
+        printf("%s! Tente novamente...\n", error);
+        wait_for_enter();
+        clear_terminal();
+    };
+}
+
+time_t read_datetime(char *message, char *error)
+{
+    char buffer[64] = {0};
+    time_t timestamp;
+    while (true)
+    {
+        int year, month, day, hour, minute, second;
+        printf("%s: ", message);
+        fgets(buffer, sizeof buffer, stdin);
+        if (sscanf(buffer, "%d/%d/%d %d:%d:%d", &day, &month, &year, &hour, &minute, &second) == 6 && year >= 1900 && month >= 1 && month <= 12 && day >= 1 && day <= 31 && hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59 && second >= 0 && second <= 59)
+        {
+            struct tm tm = {0};
+
+            tm.tm_year = year - 1900;
+            tm.tm_mon = month - 1;
+            tm.tm_mday = day;
+            tm.tm_hour = hour;
+            tm.tm_min = minute;
+            tm.tm_sec = second;
+            tm.tm_isdst = -1;
+
+            timestamp = mktime(&tm);
+
+            if (timestamp != -1)
+            {
+                return timestamp;
+            }
+        }
+
+        printf("%s! Tente novamente...\n", error);
+        wait_for_enter();
+        clear_terminal();
+    };
+}
+
+void read_city_region(char *message, char *error, char city_region[EVENT_CITY_REGION_SIZE])
+{
+    while (true)
+    {
+        printf("%s: ", message);
+        fgets(city_region, EVENT_CITY_REGION_SIZE, stdin);
+        take_until_new_line(city_region);
+        if (strlen(city_region) != 0)
+        {
+            return;
+        }
+
+        printf("%s! Tente novamente...\n", error);
+        wait_for_enter();
+        clear_terminal();
+    };
+}
+
+EventStatus read_event_status(char *message, char *error)
+{
+    char buffer[8] = {0};
+
+    int status;
+    while (true)
+    {
+        printf("[ 1 ] Ativo\n");
+        printf("[ 2 ] Resolvido\n");
+        printf("%s: ", message);
+        fgets(buffer, sizeof buffer, stdin);
+        if (sscanf(buffer, "%d", (int *)&status) == 1 && status >= 1 && status <= 2)
+        {
+            return (EventStatus)(status - 1);
+        }
+
+        printf("%s! Tente novamente...\n", error);
+        wait_for_enter();
+        clear_terminal();
+    };
+}
+
 const void *get_event_id(const void *value)
 {
-    const Event *event = value;
+    const Event *event = *(Event **)value;
 
     return &event->id;
 }
@@ -436,6 +721,6 @@ int compare_event_ids(const void *value1, const void *value2)
 
 void free_event(void *value)
 {
-    Event *event = value;
+    Event *event = *(Event **)value;
     event_free(event);
 }

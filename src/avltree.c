@@ -36,6 +36,10 @@ struct AvlTree
     bool unique_keys;
     AvlTreeGetKeyFunction get_key;
     AvlTreeCompareKeyFunction compare_keys;
+    size_t left_rotations;
+    size_t right_rotations;
+    size_t left_right_rotations;
+    size_t right_left_rotations;
     size_t version;
 };
 
@@ -402,6 +406,64 @@ AvlTreeStatus avltree_iterator_getvalue(AvlTreeIterator *iterator, void *value)
     return AVLTREE_OK;
 }
 
+AvlTreeStatus avltree_get_height(AvlTree *tree, int *height)
+{
+    if (tree == NULL || height == NULL)
+    {
+        return AVLTREE_NULL_POINTER_ARGUMENT;
+    }
+
+    if (tree->count == 0)
+    {
+        *height = 0;
+    }
+    else
+    {
+        *height = tree->root->height;
+    }
+
+    return AVLTREE_OK;
+}
+
+AvlTreeStatus avltree_get_avg_balancing_factor(AvlTree *tree, double *avg_balancing_factor)
+{
+    if (tree == NULL || avg_balancing_factor == NULL)
+    {
+        return AVLTREE_NULL_POINTER_ARGUMENT;
+    }
+
+    *avg_balancing_factor = 0;
+
+    AvlTreeNode *node = get_first_node_inorder(tree->root);
+    while (node != NULL)
+    {
+        *avg_balancing_factor += get_balancing_factor(node);
+        node = get_next_node_inorder(node);
+    }
+
+    if (tree->count != 0)
+    {
+        *avg_balancing_factor /= tree->count;
+    }
+
+    return AVLTREE_OK;
+}
+
+AvlTreeStatus avltree_get_rotation_count(AvlTree *tree, size_t *left, size_t *right, size_t *left_right, size_t *right_left)
+{
+    if (tree == NULL || left == NULL || right == NULL || left_right == NULL || right_left == NULL)
+    {
+        return AVLTREE_NULL_POINTER_ARGUMENT;
+    }
+
+    *left = tree->left_rotations;
+    *right = tree->right_rotations;
+    *left_right = tree->left_right_rotations;
+    *right_left = tree->right_left_rotations;
+
+    return AVLTREE_OK;
+}
+
 AvlTreeNode *node_new(AvlTree *tree, const void *value)
 {
     AvlTreeNode *node = malloc(sizeof *node + tree->element_size);
@@ -702,6 +764,7 @@ void rotate_left(AvlTree *tree, AvlTreeNode *node)
 
     update_height(node);
     update_height(child);
+    tree->left_rotations++;
 }
 
 void rotate_right(AvlTree *tree, AvlTreeNode *node)
@@ -725,16 +788,23 @@ void rotate_right(AvlTree *tree, AvlTreeNode *node)
 
     update_height(node);
     update_height(child);
+    tree->right_rotations++;
 }
 
 void rotate_right_left(AvlTree *tree, AvlTreeNode *node)
 {
     rotate_right(tree, node->right);
     rotate_left(tree, node);
+    tree->left_rotations--;
+    tree->right_rotations--;
+    tree->right_left_rotations++;
 }
 
 void rotate_left_right(AvlTree *tree, AvlTreeNode *node)
 {
     rotate_left(tree, node->left);
     rotate_right(tree, node);
+    tree->left_rotations--;
+    tree->right_rotations--;
+    tree->left_right_rotations++;
 }

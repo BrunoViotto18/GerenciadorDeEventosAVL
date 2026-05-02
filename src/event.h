@@ -52,17 +52,18 @@ struct Event
     EventType type;
     EventSeverity severity;
     time_t timestamp;
-    char cityRegion[EVENT_CITY_REGION_SIZE];
+    char city_region[EVENT_CITY_REGION_SIZE];
     EventStatus status;
 };
 
-Event *event_new(EventType type, EventSeverity severity, time_t timestamp, char *cityRegion, EventStatus status);
+Event *event_new_index(size_t id2, EventType type, EventSeverity severity, time_t timestamp, char *city_region, EventStatus status);
+Event *event_new(EventType type, EventSeverity severity, time_t timestamp, char *city_region, EventStatus status);
 void event_free(Event *event);
 
 EventError event_set_type(Event *event, EventType type);
 EventError event_set_severity(Event *event, EventSeverity severity);
 EventError event_set_datetime(Event *event, time_t timestamp);
-EventError event_set_cityregion(Event *event, char *cityRegion);
+EventError event_set_cityregion(Event *event, char *city_region);
 EventError event_set_status(Event *event, EventStatus status);
 
 #endif

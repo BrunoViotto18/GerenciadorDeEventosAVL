@@ -278,7 +278,7 @@ void get_severity_range(AvlTree *tree)
     }
 
     AvlTreeIterator *iterator;
-    AvlTreeStatus status = avltree_iterator_new(tree, &iterator, NULL, NULL);
+    AvlTreeStatus status = avltree_iterator_new(tree, &iterator);
 
     if (status == AVLTREE_OUT_OF_MEMORY)
     {
@@ -310,7 +310,7 @@ void get_region_events(AvlTree *tree)
     clear_terminal();
 
     AvlTreeIterator *iterator;
-    AvlTreeStatus status = avltree_iterator_new(tree, &iterator, NULL, NULL);
+    AvlTreeStatus status = avltree_iterator_new(tree, &iterator);
 
     if (status == AVLTREE_OUT_OF_MEMORY)
     {
@@ -347,7 +347,7 @@ void get_id_range(AvlTree *tree)
     }
 
     AvlTreeIterator *iterator;
-    AvlTreeStatus status = avltree_iterator_new(tree, &iterator, NULL, NULL);
+    AvlTreeStatus status = avltree_iterator_new(tree, &iterator);
 
     if (status == AVLTREE_OUT_OF_MEMORY)
     {
@@ -459,7 +459,7 @@ void display_tree_count(AvlTree *tree)
 void display_active_event_count(AvlTree *tree)
 {
     AvlTreeIterator *iterator;
-    AvlTreeStatus status = avltree_iterator_new(tree, &iterator, NULL, NULL);
+    AvlTreeStatus status = avltree_iterator_new(tree, &iterator);
 
     if (status == AVLTREE_OUT_OF_MEMORY)
     {

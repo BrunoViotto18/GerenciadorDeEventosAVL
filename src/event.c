@@ -2,9 +2,7 @@
 #include <string.h>
 #include "event.h"
 
-static size_t id = 0;
-
-Event *event_new_index(size_t id2, EventType type, EventSeverity severity, time_t timestamp, char *city_region, EventStatus status)
+Event *event_new(size_t id, EventType type, EventSeverity severity, time_t timestamp, char *city_region, EventStatus status)
 {
     Event *event = malloc(sizeof(Event));
 
@@ -13,26 +11,6 @@ Event *event_new_index(size_t id2, EventType type, EventSeverity severity, time_
         return NULL;
     }
 
-    event->id = id2;
-    event->type = type,
-    event->severity = severity;
-    event->timestamp = timestamp;
-    strncpy(event->city_region, city_region, EVENT_CITY_REGION_SIZE);
-    event->status = status;
-
-    return event;
-}
-
-Event *event_new(EventType type, EventSeverity severity, time_t timestamp, char *city_region, EventStatus status)
-{
-    Event *event = malloc(sizeof(Event));
-
-    if (event == NULL)
-    {
-        return NULL;
-    }
-
-    id++;
     event->id = id;
     event->type = type,
     event->severity = severity;

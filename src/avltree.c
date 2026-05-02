@@ -406,6 +406,29 @@ AvlTreeStatus avltree_iterator_getvalue(AvlTreeIterator *iterator, void *value)
     return AVLTREE_OK;
 }
 
+AvlTreeStatus avltree_get_greatest(AvlTree *tree, void *value)
+{
+    if (tree == NULL || value == NULL)
+    {
+        return AVLTREE_NULL_POINTER_ARGUMENT;
+    }
+
+    if (tree->count == 0)
+    {
+        return AVLTREE_EMPTY;
+    }
+
+    AvlTreeNode *node = tree->root;
+    while (node->right != NULL)
+    {
+        node = node->right;
+    }
+
+    memcpy(value, node->value, tree->element_size);
+
+    return AVLTREE_OK;
+}
+
 AvlTreeStatus avltree_get_height(AvlTree *tree, int *height)
 {
     if (tree == NULL || height == NULL)

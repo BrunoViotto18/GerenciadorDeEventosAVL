@@ -44,7 +44,10 @@ typedef enum
     AVLTREE_ITERATOR_END,
 
     /// @brief The iterator was invalidated by a tree change.
-    AVLTREE_ITERATOR_INVALID
+    AVLTREE_ITERATOR_INVALID,
+
+    /// @brief The tree is empty.
+    AVLTREE_EMPTY
 } AvlTreeStatus;
 
 /// @brief Gets the comparable key from a value.
@@ -186,12 +189,21 @@ AvlTreeStatus avltree_iterator_next(AvlTreeIterator *iterator, void *value);
 /// @retval AVLTREE_ITERATOR_INVALID The iterator was invalidated by a tree change.
 AvlTreeStatus avltree_iterator_getvalue(AvlTreeIterator *iterator, void *value);
 
+/// @brief Gets the value with greatest key stored.
+/// @param tree Tree to inspect.
+/// @param value Output pointer that receives the copy of the value with greatest key.
+/// @return Result code indicating success or failure.
+/// @retval AVLTREE_OK The key was copied successfully.
+/// @retval AVLTREE_NULL_POINTER_ARGUMENT The tree or key was NULL.
+/// @retval AVLTREE_EMPTY The tree is empty.
+AvlTreeStatus avltree_get_greatest(AvlTree *tree, void *value);
+
 /// @brief Gets the tree height.
 /// @param tree Tree to inspect.
 /// @param height Output pointer that receives the value height.
 /// @return Result code indicating success or failure.
 /// @retval AVLTREE_OK The height was written successfully.
-/// @retval AVLTREE_NULL_POINTER_ARGUMENT tree or height was NULL.
+/// @retval AVLTREE_NULL_POINTER_ARGUMENT The tree or height was NULL.
 AvlTreeStatus avltree_get_height(AvlTree *tree, int *height);
 
 /// @brief Gets the tree average balancing factor.
@@ -199,7 +211,7 @@ AvlTreeStatus avltree_get_height(AvlTree *tree, int *height);
 /// @param avg_balancing_factor Output pointer that receives the average of the balancing factor.
 /// @return Result code indicating success or failure.
 /// @retval AVLTREE_OK The average balancing factor was written successfully.
-/// @retval AVLTREE_NULL_POINTER_ARGUMENT tree or avg_balancing_factor was NULL.
+/// @retval AVLTREE_NULL_POINTER_ARGUMENT The tree or avg_balancing_factor was NULL.
 AvlTreeStatus avltree_get_avg_balancing_factor(AvlTree *tree, double *avg_balancing_factor);
 
 /// @brief Gets the tree rotation count metadata.
@@ -210,7 +222,7 @@ AvlTreeStatus avltree_get_avg_balancing_factor(AvlTree *tree, double *avg_balanc
 /// @param right_left Output pointer that receives the count of right-left rotations performed.
 /// @return Result code indicating success or failure.
 /// @retval AVLTREE_OK The rotations were written successfully.
-/// @retval AVLTREE_NULL_POINTER_ARGUMENT tree, left, right, left_right or right_left was NULL.
+/// @retval AVLTREE_NULL_POINTER_ARGUMENT The tree, left, right, left_right or right_left was NULL.
 AvlTreeStatus avltree_get_rotation_count(AvlTree *tree, size_t *left, size_t *right, size_t *left_right, size_t *right_left);
 
 #endif

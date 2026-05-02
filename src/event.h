@@ -56,8 +56,7 @@ struct Event
     EventStatus status;
 };
 
-Event *event_new_index(size_t id2, EventType type, EventSeverity severity, time_t timestamp, char *city_region, EventStatus status);
-Event *event_new(EventType type, EventSeverity severity, time_t timestamp, char *city_region, EventStatus status);
+Event *event_new(size_t id, EventType type, EventSeverity severity, time_t timestamp, char *city_region, EventStatus status);
 void event_free(Event *event);
 
 EventError event_set_type(Event *event, EventType type);

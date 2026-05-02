@@ -169,13 +169,48 @@ MenuOption menu()
 
 void create_event(AvlTree *tree)
 {
+    size_t id;
+    while (true)
+    {
+        id = read_id("Digite o id do evento [0 = automático]", "Valor de id inválido");
+        clear_terminal();
+
+        if (id == 0)
+        {
+            Event *event;
+            AvlTreeStatus status = avltree_get_greatest(tree, &event);
+
+            if (status == AVLTREE_EMPTY)
+            {
+                id = 1;
+                break;
+            }
+
+            id = event->id + 1;
+            break;
+        }
+
+        bool exists;
+        avltree_exists(tree, &id, &exists);
+        if (!exists)
+        {
+            break;
+        }
+
+        clear_terminal();
+        printf("O id %ld já está em uso! Tente novamente...\n", id);
+        wait_for_enter();
+        clear_terminal();
+    }
+    clear_terminal();
+
     EventType type = read_event_type("Selecione o tipo do evento", "Tipo de evento inválido");
     clear_terminal();
 
     EventSeverity severity = read_event_severity("Digite a severidade do evento [1~5]", "Valor de severidade inválida");
     clear_terminal();
 
-    time_t timestamp = read_datetime("Digite a data/hora do evento [dd/MM/YYYY HH:mm:ss]", "Valor de Data/hora inválida");
+    time_t timestamp = read_datetime("Digite a data/hora do evento [dd/MM/YYYY HH:mm:ss]", "Valor de Data/hora inválida, a data deve seguir o padrão \"dd/mm/YYYY HH:mm:ss\"");
     clear_terminal();
 
     char city_region[EVENT_CITY_REGION_SIZE] = {0};
@@ -185,7 +220,7 @@ void create_event(AvlTree *tree)
     EventStatus status = read_event_status("Selecione o status do evento", "Valor de status inválido");
     clear_terminal();
 
-    Event *event = event_new(type, severity, timestamp, city_region, status);
+    Event *event = event_new(id, type, severity, timestamp, city_region, status);
 
     if (event == NULL)
     {

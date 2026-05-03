@@ -461,6 +461,8 @@ void get_id_range(AvlTree *tree)
     size_t min = read_id("Digite o id mínimo", "Valor de id mínimo inválido");
     size_t max = read_id("Digite o id máximo", "Valor de id máximo inválido");
 
+    clear_terminal();
+
     if (min > max)
     {
         size_t temp = min;

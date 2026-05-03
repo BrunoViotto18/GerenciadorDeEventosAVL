@@ -4,6 +4,7 @@
 #include "event.h"
 #include "terminal.h"
 
+/// @brief Represents all possible menu options.
 typedef enum
 {
     MENU_EXIT = 0,
@@ -22,33 +23,119 @@ typedef enum
     MENU_DISPLAY_TREE_ROTATION_COUNT,
 } MenuOption;
 
+/// @brief Displays the menu options.
+/// @return Returns the selected option.
 MenuOption menu();
+
+/// @brief Creates an event.
+/// @param tree Tree to store the event into.
 void create_event(AvlTree *tree);
+
+/// @brief Removes an event by id.
+/// @param tree The tree to remove the event from.
 void remove_event(AvlTree *tree);
+
+/// @brief Gets an event by id.
+/// @param tree The tree to retrieve the event from.
 void get_event_by_id(AvlTree *tree);
+
+/// @brief Gets all events within a severity range.
+/// @param tree The tree to retrieve the event from.
 void get_severity_range(AvlTree *tree);
+
+/// @brief Gets all events of a certain region.
+/// @param tree The tree to retrieve the event from.
 void get_region_events(AvlTree *tree);
+
+/// @brief Gets all events within an id range.
+/// @param tree The tree to retrieve the event from.
 void get_id_range(AvlTree *tree);
+
+/// @brief Updates the status of an event from active to resolved.
+/// @param tree The tree to retrieve the event from.
 void update_event_status(AvlTree *tree);
+
+/// @brief Updates the severity of an event from active to resolved.
+/// @param tree The tree to retrieve the event from.
 void update_event_severity(AvlTree *tree);
+
+/// @brief Displays the current tree height.
+/// @param tree The tree to be queried.
 void display_tree_height(AvlTree *tree);
+
+/// @brief Displays the current tree element count.
+/// @param tree The tree to be queried.
 void display_tree_count(AvlTree *tree);
+
+/// @brief Displays the amount of currently active events.
+/// @param tree The tree to be queried.
 void display_active_event_count(AvlTree *tree);
+
+/// @brief Displays the current balancing factor average of the tree.
+/// @param tree The tree to be queried.
 void display_tree_balancing_factor(AvlTree *tree);
+
+/// @brief Displays the rotations performed by the tree.
+/// @param tree The tree to be queried.
 void display_tree_rotation_count(AvlTree *tree);
 
+/// @brief Displays an event data
+/// @param event The event to be displayed.
 void display_event(Event *event);
+
+/// @brief Trims the string untill first new_line.
+/// @param str The string to be trimmed.
 void take_until_new_line(char *str);
 
+/// @brief Reads an id from the user.
+/// @param message The message to be printed to the user.
+/// @param error The error message in case of invalid input.
+/// @return Returns the id read.
 size_t read_id(char *message, char *error);
+
+/// @brief Reads an event type from the user.
+/// @param message The message to be printed to the user.
+/// @param error The error message in case of invalid input.
+/// @return Returns the event type read.
 EventType read_event_type(char *message, char *error);
+
+/// @brief Reads an event severity from the user.
+/// @param message The message to be printed to the user.
+/// @param error The error message in case of invalid input.
+/// @return Returns the event severity read.
 EventSeverity read_event_severity(char *message, char *error);
+
+/// @brief Reads a date time from the user.
+/// @param message The message to be printed to the user.
+/// @param error The error message in case of invalid input.
+/// @return Returns the timestamp of the datetime read.
 time_t read_datetime(char *message, char *error);
+
+/// @brief Reads a city region from the user.
+/// @param message The message to be printed to the user.
+/// @param error The error message in case of invalid input.
+/// @param city_region Pointer to the city region buffer to be written to.
 void read_city_region(char *message, char *error, char city_region[EVENT_CITY_REGION_SIZE]);
+
+/// @brief Reads an event status from the user.
+/// @param message The message to be printed to the user.
+/// @param error The error message in case of invalid input.
+/// @return Returns the event status read.
 EventStatus read_event_status(char *message, char *error);
 
+/// @brief Gets the pointer to an id in an event.
+/// @param value Pointer to an event pointer.
+/// @return Returns a pointer to the id in the event.
 const void *get_event_id(const void *value);
-int compare_event_ids(const void *value1, const void *value2);
+
+/// @brief Compares two pointers to event ids.
+/// @param key1 The first id pointer.
+/// @param key2 The second id pointer.
+/// @return Returns < 0, 0 or > 0, if id1 is smaller, equal or greater than id2.
+int compare_event_ids(const void *key1, const void *key2);
+
+/// @brief Frees an event
+/// @param value A pointer to an event pointer.
 void free_event(void *value);
 
 int main(void)
@@ -544,19 +631,19 @@ void display_event(Event *event)
     printf("Tipo: ");
     switch (event->type)
     {
-    case EVENTTYPE_TRAFFIC_ACCIDENT:
+    case EVENT_TYPE_TRAFFIC_ACCIDENT:
         printf("Acidente de Trânsito");
         break;
-    case EVENTTYPE_TRAFFIC_LIGHT_MALFUNCTION:
+    case EVENT_TYPE_TRAFFIC_LIGHT_MALFUNCTION:
         printf("Falhas em Semáforos");
         break;
-    case EVENTTYPE_POWER_OUTAGE:
+    case EVENT_TYPE_POWER_OUTAGE:
         printf("Interrupção de Energia");
         break;
-    case EVENTTYPE_FLOOD:
+    case EVENT_TYPE_FLOOD:
         printf("Alagamento");
         break;
-    case EVENTTYPE_WILDFIRE:
+    case EVENT_TYPE_WILDFIRE:
         printf("Incêndio");
         break;
     }
@@ -750,17 +837,17 @@ const void *get_event_id(const void *value)
     return &event->id;
 }
 
-int compare_event_ids(const void *value1, const void *value2)
+int compare_event_ids(const void *key1, const void *key2)
 {
-    const int *key1 = value1;
-    const int *key2 = value2;
+    const int id1 = *(int *)key1;
+    const int id2 = *(int *)key2;
 
-    if (*key1 > *key2)
+    if (id1 > id2)
     {
         return 1;
     }
 
-    if (*key1 < *key2)
+    if (id1 < id2)
     {
         return -1;
     }
@@ -771,5 +858,6 @@ int compare_event_ids(const void *value1, const void *value2)
 void free_event(void *value)
 {
     Event *event = *(Event **)value;
+
     event_free(event);
 }
